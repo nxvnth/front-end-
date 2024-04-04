@@ -18,7 +18,7 @@ const Chatbot = () => {
     const handleSendMessage = (e) => {
         e.preventDefault();
         if (!inputValue.trim()) return;
-
+    
         const newMessage = {
             id: Date.now(),
             text: inputValue,
@@ -28,25 +28,30 @@ const Chatbot = () => {
         setMessages([...messages, newMessage]);
         setInputValue('');
         setIsBotTyping(true);
-
-        fetch('http://localhost:5001/start-crawler', { method: 'GET' })
-  .then(response => response.json())
-  .then(data => {
-      console.log(data.message);
-      // Now send the chat message after crawler initialization
-      return fetch('http://localhost:5001/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: inputValue }),
-      });
-  })
-  .then(response => response.json())
-  .then(data => {
-      // Process chat response here
-  })
-  .catch(error => console.error('Error:', error));
-
+    
+        // Replace 'http://localhost:5000/send_message' with your actual Flask endpoint URL
+        fetch('http://localhost:5000/send_message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: inputValue }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            const botMessage = {
+                id: Date.now(),
+                text: data.message,
+                sender: 'bot',
+                timestamp: Date.now(),
+            };
+            setMessages(messages => [...messages, botMessage]);
+            setIsBotTyping(false);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            setIsBotTyping(false);
+        });
     };
+    
 
     const formatTimestamp = (timestamp) => {
         return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

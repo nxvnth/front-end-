@@ -11,23 +11,67 @@ const UploadResource = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError(''); 
-
-    if (resourceType === 'url' && !url) {
-      setError('Please enter a URL.');
-      return;
-    } else if (resourceType === 'pdf' && !file) {
-      setError('Please upload a PDF file.');
-      return;
-    }
-
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      alert('Resource submitted successfully!');
-      navigate('/');
-    }, 2000);
+
+    // Log the current resourceType, URL, and file
+    console.log('Resource Type:', resourceType);
+    console.log('URL:', url);
+    console.log('File:', file);
+
+    if (resourceType === 'url') {
+    // Handle URL submission
+      console.log('Submitting URL:', url); // Additional log for URL submission
+      if (!url) {
+        alert("Please enter a URL.");
+        setLoading(false);
+        return;
+      }
+      // Send URL to the backend
+      fetch('http://localhost:5000/submit_url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: url }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        setLoading(false);
+        // Handle response
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        setLoading(false);
+      });
+    } else if (resourceType === 'pdf') {
+      // Handle PDF upload
+      if (!file) {
+        alert("Please upload a PDF file.");
+        setLoading(false);
+        return;
+      }
+      const formData = new FormData();
+      formData.append('file', file);
+      console.log('Uploading PDF:', file.name); // Additional log for file upload
+      // Send file to the backend
+      fetch('http://localhost:5000/upload_pdf', {
+        method: 'POST',
+        body: formData,
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        setLoading(false);
+        // Handle response
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        setLoading(false);
+      });
+    }
   };
+
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
